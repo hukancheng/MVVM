@@ -9,7 +9,9 @@
 <script src="./vue.js"></script>
 <body>
   <div id='app'>
-      <input v-model="input">
+      <div on-click="add">
+        点击事件
+      </div>
       <textarea v-model="input"></textarea>
       <div>这是一个input输入框：{{input}}</div>
       <div><input v-model="input"></div>
@@ -27,12 +29,16 @@
 var vm = new Vue({
   el:'app',
   data: {
-    input: 'aaa'
+    input: 'aaa',
+    textarea: 'ccc'
   },
   methods: {
-
+    add: function () {
+      console.log('点击事件')
+      console.log(this.data.textarea)
+    }
   }
 })
-console.log(vm,'vue-dom')
+// console.log(vm,'vue-dom')
 </script>
 </html>
