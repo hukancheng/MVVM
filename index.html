@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>My Vue</title>
+</head>
+<script src="./vue.js"></script>
+<body>
+  <div id='app'>
+      <input v-model="input">
+      <div>这是一个input输入框：{{input}}</div>
+      <div><input v-model="input"></div>
+      <div id="appp">
+        <p>撒打开啦是看电视快乐</p>
+        <div>23213</div>
+        <div>
+          <span>撒旦卡手机号</span>
+        </div>
+        
+      </div>
+  </div>
+</body>
+<script>
+var vm = new Vue({
+  el:'app',
+  data: {
+    input: 'aaa'
+  },
+  methods: {
+
+  }
+})
+console.log(vm,'vue-dom')
+</script>
+</html>
