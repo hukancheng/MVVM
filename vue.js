@@ -26,13 +26,13 @@ function nodeToFragment(node,vm) {
   //   newDocument.appendChild(child)
   // }
   for (let i = 0; i < node.childNodes.length; i++) {
-    if(node.childNodes[i].nodeType == 1 && node.childNodes[i].attributes.length > 0) { 
-      // console.log(node.childNodes[i].attributes, 'zidingyi')
-      initEvent(node,i,vm)
-    }
-    if(node.childNodes[i].childNodes.length > 0){
+    if(node.childNodes[i].nodeType == 1){
       // console.log(node.childNodes[i], '有子节点:',node.childNodes[i].childNodes.length)
-      let newNode = nodeToFragment(node.childNodes[i])
+      if(node.childNodes[i].nodeType == 1 && node.childNodes[i].attributes.length > 0) { 
+        // console.log(node.childNodes[i].attributes, 'zidingyi')
+        initEvent(node,i,vm)
+      }
+      let newNode = nodeToFragment(node.childNodes[i],vm)
       newDocument.appendChild(newNode,vm)
     } else {
       comfile(node.childNodes[i],vm)
@@ -45,8 +45,12 @@ function nodeToFragment(node,vm) {
 
 function comfile (node,vm) {
   // console.log(vm,33)
-  // console.log(node,333)
+  let rg = /\{\{(.*)\}\}/
+  let innerHTML = node.nodeValue
+  console.log(node,333,innerHTML)
+  console.log(rg.test(innerHTML),RegExp.$1)
 }
+
 function initEvent (node,index,vm) {
   let attr = node.childNodes[index].attributes
   for (let i = 0;i < attr.length; i++) {
@@ -59,12 +63,16 @@ function initEvent (node,index,vm) {
       if(!name) {
         throw 'v-model no value'
       }
-      node.childNodes[index].addEventListener('input',e => {diffData(name,e.target.value,vm)})
+      node.childNodes[index].addEventListener('input',e => {
+        diffData(name,e.target.value,vm)
+        
+      })
       
     }
   }
 }
+
 function diffData (key,val,vm) {
   console.log(key,val,vm)
-
+  
 }

@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>My Vue</title>
+  <title>简单Vue双向绑定</title>
 </head>
 <script src="./vue.js"></script>
 <body>
   <div id='app'>
-    简单Vue双向绑定
+      <h2>简单模拟Vue双向绑定</h2>
       <div on-click="click">
         点击事件: {{add}}次
       </div>
@@ -39,6 +39,7 @@ var vm = new Vue({
   methods: {
     click(e) {
       console.log('点击事件',this)
+      // this.setData({add: this.data.add})
     }
   }
 })
