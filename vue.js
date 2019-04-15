@@ -76,3 +76,16 @@ function diffData (key,val,vm) {
   console.log(key,val,vm)
   
 }
+
+// 监听器Observer start
+
+// 监听器Observer end
+
+//订阅者Watcher start
+//订阅者Watcher end
+
+// 解析器Compile start
+// 解析器Compile end
+
+
+
