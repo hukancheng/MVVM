@@ -9,12 +9,12 @@
 <script src="./vue.js"></script>
 <body>
   <div id='app'>
-      <h2>简单模拟Vue双向绑定</h2>
+      <h2 name="aa">简单模拟Vue双向绑定</h2>
       <div on-click="click">
         点击事件: {{add}}次
       </div>
       <p>这是textaread的值: {{textarea}}</p>
-      <textarea v-model="textareaData"></textarea>
+      <textarea name='text.tex' v-model="textareaData"></textarea>
       <div>这是input值：{{input}}</div>
       <div><input name="input1" v-model="inputData" ></div>
       <div id="appp">

@@ -3,7 +3,6 @@ function Vue(op) {
   this.methods = op.methods
   let id = op.el
   this._ob_ = {}
-  console.log(this)
   let dom = nodeToFragment(document.getElementById(id),this)
   // let dom = document.getElementById("appp").innerHTML = "Hello World";
   document.getElementById(id).appendChild(dom)
@@ -14,77 +13,94 @@ function nodeToFragment(node,vm) {
   // debugger
   let newDocument = document.createDocumentFragment();
   let child;
-  // let i = 0
-  // while((child = node.firstChild) && (i < 1500)) {
-  //   i++
-  //   if (child.childNodes && child.childNodes.length > 0) {
-  //     let addNode = nodeToFragment(child,vm) 
-  //     child.appendChild(addNode)
-  //   } else {
-  //     comfile(node,vm)
-  //   }
-  //   newDocument.appendChild(child)
-  // }
-  for (let i = 0; i < node.childNodes.length; i++) {
-    if(node.childNodes[i].nodeType == 1){
-      // console.log(node.childNodes[i], '有子节点:',node.childNodes[i].childNodes.length)
-      if(node.childNodes[i].nodeType == 1 && node.childNodes[i].attributes.length > 0) { 
-        // console.log(node.childNodes[i].attributes, 'zidingyi')
-        initEvent(node,i,vm)
-      }
-      let newNode = nodeToFragment(node.childNodes[i],vm)
-      newDocument.appendChild(newNode,vm)
+  while(child = node.firstChild) {
+    if (child.childNodes && child.childNodes.length > 0) {
+      initEvent(child,vm)
+      let addNode = nodeToFragment(child,vm) 
+      child.appendChild(addNode)
     } else {
-      comfile(node.childNodes[i],vm)
+      comfile(node,vm)
     }
-    // newDocument.appendChild(node.childNodes[i])
-    // console.log(newDocument,77777)
+    newDocument.appendChild(child)
   }
   return newDocument
 }
 
+
+// 监听器Observer start
+function observer(data) {
+  if(!data || typeof data !== 'object') return
+  // 取出所有属性遍历
+  Object.keys(data).forEach(function(key) {
+    defineReactive(data, key, data[key]);
+  });
+}
+
+function defineReactive (data,key,val) {
+  observer(data) // 继续向下监听子属性
+  Object.defineProperty({
+    enumerable: true,
+    configurable: false,
+    get: function () {
+      console.log(`读取了${key}属性`)
+      return val 
+    },
+    set: function (newVal) {
+      console.log('监听值变化 ', val, ' --> ', newVal);
+      val = newVal
+    }
+  })
+}
+ function initData(key,val,vm){
+  // console.log(key,val,vm)
+  let arr = key.split('.')
+  arr.forEach(res => {
+    vm.data[res]
+  })
+ }
+// 监听器Observer end
+//订阅者Watcher start
+ function Watcher () {
+
+ }
+//订阅者Watcher end
+// 解析器Compile start
 function comfile (node,vm) {
+  
   // console.log(vm,33)
   let rg = /\{\{(.*)\}\}/
   let innerHTML = node.nodeValue
-  console.log(node,333,innerHTML)
-  console.log(rg.test(innerHTML),RegExp.$1)
-}
-
-function initEvent (node,index,vm) {
-  let attr = node.childNodes[index].attributes
+  // console.log(rg.test(innerHTML),RegExp.$1)
+  if (node.nodeType == 1) {
+    // console.log('类型1', node.innerHTML)
+  }
+  if (node.nodeType == 3) {
+    // console.log('类型3', node.innerHTML)
+  }
+  let attr = node.attributes
   for (let i = 0;i < attr.length; i++) {
-    if (attr[i].nodeName == 'on-click') {
-      let functionName = attr[i].nodeValue;
-      node.childNodes[index].addEventListener('click', e => vm.methods[functionName].bind(vm)(e))
-    }
     if(attr[i].nodeName == 'v-model') {
       let name = attr[i].nodeValue
       if(!name) {
         throw 'v-model no value'
-      }
-      node.childNodes[index].addEventListener('input',e => {
-        diffData(name,e.target.value,vm)
-        
-      })
-      
+      }  
     }
+    node.addEventListener('input',e => {
+      console.log(e.target.name,e.target.value,3322)
+      initData(e.target.name,e.target.value,vm)
+    }) 
   }
 }
 
-function diffData (key,val,vm) {
-  console.log(key,val,vm)
-  
+function initEvent (node,vm) {
+  let attr = node.attributes
+  for (let i = 0;i < attr.length; i++) {
+    if (attr[i].nodeName == 'on-click') {
+      let functionName = attr[i].nodeValue;
+      node.addEventListener('click', e => vm.methods[functionName].bind(vm)(e))
+    }
+  }
 }
-
-// 监听器Observer start
-
-// 监听器Observer end
-
-//订阅者Watcher start
-//订阅者Watcher end
-
-// 解析器Compile start
 // 解析器Compile end
 
 
