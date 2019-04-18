@@ -3,6 +3,7 @@ function Vue(op) {
   this.methods = op.methods
   let id = op.el
   this._ob_ = {}
+  // initData(this.data,this._ob_)
   let dom = nodeToFragment(document.getElementById(id),this)
   // let dom = document.getElementById("appp").innerHTML = "Hello World";
   document.getElementById(id).appendChild(dom)
@@ -58,6 +59,9 @@ function defineReactive (data,key,val) {
     vm.data[res]
   })
  }
+ function isObject(obj) {
+    return Object.prototype.toString.call(obj) === '[object Object]'
+}
 // 监听器Observer end
 //订阅者Watcher start
  function Watcher () {
@@ -79,16 +83,11 @@ function comfile (node,vm) {
   }
   let attr = node.attributes
   for (let i = 0;i < attr.length; i++) {
-    if(attr[i].nodeName == 'v-model') {
-      let name = attr[i].nodeValue
-      if(!name) {
-        throw 'v-model no value'
-      }  
-    }
     node.addEventListener('input',e => {
       console.log(e.target.name,e.target.value,3322)
-      initData(e.target.name,e.target.value,vm)
+      // initData(e.target.name,e.target.value,vm)
     }) 
+
   }
 }
 
@@ -98,6 +97,13 @@ function initEvent (node,vm) {
     if (attr[i].nodeName == 'on-click') {
       let functionName = attr[i].nodeValue;
       node.addEventListener('click', e => vm.methods[functionName].bind(vm)(e))
+    }
+    if(attr[i].nodeName == 'v-model') {
+      let name = attr[i].nodeValue
+      if(!name) {
+        throw 'v-model no value'
+      }  
+      node.removeAttribute('v-model')
     }
   }
 }
