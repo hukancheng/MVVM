@@ -4,28 +4,28 @@ function Vue(op) {
   let id = op.el
   this._ob_ = {}
   // initData(this.data,this._ob_)
-  let dom = nodeToFragment(document.getElementById(id),this)
+  let dom = new Compile(document.getElementById(id),this)
   // let dom = document.getElementById("appp").innerHTML = "Hello World";
   document.getElementById(id).appendChild(dom)
   return this
 }
 
-function nodeToFragment(node,vm) {
-  // debugger
-  let newDocument = document.createDocumentFragment();
-  let child;
-  while(child = node.firstChild) {
-    if (child.childNodes && child.childNodes.length > 0) {
-      initEvent(child,vm)
-      let addNode = nodeToFragment(child,vm) 
-      child.appendChild(addNode)
-    } else {
-      comfile(node,vm)
-    }
-    newDocument.appendChild(child)
-  }
-  return newDocument
-}
+// function nodeToFragment(node,vm) {
+//   // debugger
+//   let newDocument = document.createDocumentFragment();
+//   let child;
+//   while(child = node.firstChild) {
+//     if (child.childNodes && child.childNodes.length > 0) {
+//       initEvent(node,vm)
+//       let addNode = nodeToFragment(child,vm) 
+//       child.appendChild(addNode)
+//     } else {
+//       Comfile(node,vm)
+//     }
+//     newDocument.appendChild(child)
+//   }
+//   return newDocument
+// }
 
 
 // 监听器Observer start
@@ -69,27 +69,70 @@ function defineReactive (data,key,val) {
  }
 //订阅者Watcher end
 // 解析器Compile start
-function comfile (node,vm) {
-  
-  // console.log(vm,33)
-  let rg = /\{\{(.*)\}\}/
-  let innerHTML = node.nodeValue
-  // console.log(rg.test(innerHTML),RegExp.$1)
-  if (node.nodeType == 1) {
-    // console.log('类型1', node.innerHTML)
-  }
-  if (node.nodeType == 3) {
-    // console.log('类型3', node.innerHTML)
-  }
-  let attr = node.attributes
-  for (let i = 0;i < attr.length; i++) {
-    node.addEventListener('input',e => {
-      console.log(e.target.name,e.target.value,3322)
-      // initData(e.target.name,e.target.value,vm)
-    }) 
+function Compile (node,vm) {
+  // let attr = node.attributes
+  // for (let i = 0;i < attr.length; i++) {
+  //   node.addEventListener('input',e => {
+  //     console.log(e.target.name,e.target.value,3322)
+  //     // initData(e.target.name,e.target.value,vm)
+  //   }) 
 
-  }
+  // }
+  this.initDocment = node
+  this.fragment = this.nodeToFragment(node);
+  this.init(this.fragment)
+  return this.fragment;
 }
+
+Compile.prototype = {
+  init: function (e) {
+    this.compileElement(e);
+  },
+
+  nodeToFragment: function(node) {
+    let newDocument = document.createDocumentFragment()
+    let child
+    // 将节点拷贝到fragment
+    while(child = node.firstChild) {
+      newDocument.appendChild(child)
+    }
+    return newDocument;
+  },
+
+  compileElement: function(node) {
+    let childNodes = node.childNodes;
+    [].slice.call(childNodes).forEach( n => {
+      let reg = /\{\{(.*)\}\}/;
+      let text = node.textContent
+      if (node.nodeType == 1) {
+        // this.compile(node)
+      } 
+      else if ((node.nodeType == 3) && reg.test(text)) {
+        // this.compileText(node, RegExp.$1);
+        // this.compileText(node,RegExp.$1)
+      }
+      // 继续向下递归子节点
+      if(node.childNodes && node.childNodes.length) {
+        this.compileElement(node)
+      }
+    })
+  },
+
+  compile: function(node) {
+    let attrs = node.attributes;
+    [].slice.call(attrs).forEach( n => {
+      // 注册指令
+      let attrName = attr.name
+      if (attrName.indexOf('v-') == 0) {
+        let val = attr.value
+
+      }
+    })
+  },
+
+
+}
+
 
 function initEvent (node,vm) {
   let attr = node.attributes
