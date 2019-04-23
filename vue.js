@@ -10,23 +10,6 @@ function Vue(op) {
   return this
 }
 
-// function nodeToFragment(node,vm) {
-//   // debugger
-//   let newDocument = document.createDocumentFragment();
-//   let child;
-//   while(child = node.firstChild) {
-//     if (child.childNodes && child.childNodes.length > 0) {
-//       initEvent(node,vm)
-//       let addNode = nodeToFragment(child,vm) 
-//       child.appendChild(addNode)
-//     } else {
-//       Comfile(node,vm)
-//     }
-//     newDocument.appendChild(child)
-//   }
-//   return newDocument
-// }
-
 
 // 监听器Observer start
 function observer(data) {
@@ -38,6 +21,7 @@ function observer(data) {
 }
 
 function defineReactive (data,key,val) {
+  let Dep = new Dep();
   observer(data) // 继续向下监听子属性
   Object.defineProperty({
     enumerable: true,
@@ -49,35 +33,40 @@ function defineReactive (data,key,val) {
     set: function (newVal) {
       console.log('监听值变化 ', val, ' --> ', newVal);
       val = newVal
+      Dep.notify()
     }
   })
 }
- function initData(key,val,vm){
-  // console.log(key,val,vm)
+function Dep () {
+  this.subs = []
+}
+
+Dep.prototype = {
+  addSub: function (sub) {
+    this.subs.push(sub)
+  },
+  notify: function() {
+    this.subs.forEach( s => {
+      sub.update()
+    })
+  }
+}
+
+function initData(key,val,vm){
   let arr = key.split('.')
   arr.forEach(res => {
     vm.data[res]
   })
- }
- function isObject(obj) {
+}
+
+function isObject(obj) {
     return Object.prototype.toString.call(obj) === '[object Object]'
 }
 // 监听器Observer end
-//订阅者Watcher start
- function Watcher () {
 
- }
-//订阅者Watcher end
 // 解析器Compile start
 function Compile (node,vm) {
-  // let attr = node.attributes
-  // for (let i = 0;i < attr.length; i++) {
-  //   node.addEventListener('input',e => {
-  //     console.log(e.target.name,e.target.value,3322)
-  //     // initData(e.target.name,e.target.value,vm)
-  //   }) 
-
-  // }
+  this.vm = vm
   this.initDocment = node
   this.fragment = this.nodeToFragment(node);
   this.init(this.fragment)
@@ -103,19 +92,26 @@ Compile.prototype = {
     let childNodes = node.childNodes;
     [].slice.call(childNodes).forEach( n => {
       let reg = /\{\{(.*)\}\}/;
-      let text = node.textContent
-      if (node.nodeType == 1) {
+      let text = n.textContent
+      if (n.nodeType == 1) {
         // this.compile(node)
+        utils.eventHandler(n,this.vm)
       } 
-      else if ((node.nodeType == 3) && reg.test(text)) {
+      else if ((n.nodeType == 3) && reg.test(text)) {
         // this.compileText(node, RegExp.$1);
-        // this.compileText(node,RegExp.$1)
+        this.compileText(node,RegExp.$1.trim())
+        // utils.inputHandler(node,vm)
+        console.log(RegExp.$1,`{{${RegExp.$1}}}`)
       }
       // 继续向下递归子节点
-      if(node.childNodes && node.childNodes.length) {
-        this.compileElement(node)
+      if(n.childNodes && n.childNodes.length) {
+        this.compileElement(n)
       }
     })
+  },
+  compileText: function(node,key) {
+    console.log(this,55)
+
   },
 
   compile: function(node) {
@@ -133,24 +129,65 @@ Compile.prototype = {
 
 }
 
+let utils = {
+  eventHandler: function(node,vm) {
+    let attr = node.attributes
+    for (let i = 0;i < attr.length; i++) {
+      if (attr[i].nodeName == 'on-click') {
+        let functionName = attr[i].nodeValue;
+        node.addEventListener('click', e => vm.methods[functionName].bind(vm)(e));
+      }
+      if(attr[i].nodeName == 'v-model') {
+        let name = attr[i].nodeValue
+        if(!name) {
+          throw 'v-model no value'
+        }  
+        node.removeAttribute('v-model')
+      }
+      // if(attr[i].nodeName == 'input') {
+      //   node.addEventListener('input',e => {
+      //     console.log(e.target)
+      //   })
+      // }
 
-function initEvent (node,vm) {
-  let attr = node.attributes
-  for (let i = 0;i < attr.length; i++) {
-    if (attr[i].nodeName == 'on-click') {
-      let functionName = attr[i].nodeValue;
-      node.addEventListener('click', e => vm.methods[functionName].bind(vm)(e))
     }
-    if(attr[i].nodeName == 'v-model') {
-      let name = attr[i].nodeValue
-      if(!name) {
-        throw 'v-model no value'
-      }  
-      node.removeAttribute('v-model')
+  },
+  inputHandler: function(node,vm) {
+    // node.addEventListener('input',e => {
+    //   console.log(e.target)
+    // })
+  }
+
+}
+
+// 解析器Compile end
+//订阅者Watcher start
+function Watcher (vm,reg,cb) {
+this.vm = vm
+this.reg = reg
+this.cb = cb
+this.val = this.get() 
+}
+Watcher.prototype = {
+  update() {
+    this.run()
+  },
+  run() {
+    let val = this.get()
+    let oldVal = this.value;
+    if (value !== oldVal) {
+      this.value = value;
+      this.cb.call(this.vm,val,oldVal)
     }
+  },
+  get() {
+    dep.target = this
+    let val = this.vm[reg]
+    Dep.target = null
+    return val
   }
 }
-// 解析器Compile end
 
+//订阅者Watcher end
 
 
