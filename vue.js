@@ -3,7 +3,7 @@ function Vue(op) {
   this.methods = op.methods
   let id = op.el
   this._ob_ = {}
-  // initData(this.data,this._ob_)
+  observer(this.data)
   let dom = new Compile(document.getElementById(id),this)
   // let dom = document.getElementById("appp").innerHTML = "Hello World";
   document.getElementById(id).appendChild(dom)
@@ -15,25 +15,28 @@ function Vue(op) {
 function observer(data) {
   if(!data || typeof data !== 'object') return
   // 取出所有属性遍历
-  Object.keys(data).forEach(function(key) {
-    defineReactive(data, key, data[key]);
+  Object.keys(data).forEach(function(k) {
+    defineReactive(data, k, data[k]);
   });
 }
 
 function defineReactive (data,key,val) {
-  let Dep = new Dep();
-  observer(data) // 继续向下监听子属性
-  Object.defineProperty({
+  var dep = new Dep();
+  observer(data[key]) 
+  Object.defineProperty(data,key,{
     enumerable: true,
     configurable: false,
     get: function () {
       console.log(`读取了${key}属性`)
+      if(Dep.target){
+        dep.addSub(Dep.target);
+      }
       return val 
     },
     set: function (newVal) {
-      console.log('监听值变化 ', val, ' --> ', newVal);
+      console.log('set值变化 ', val, ' --> ', newVal,data);
       val = newVal
-      Dep.notify()
+      dep.notify()
     }
   })
 }
@@ -45,19 +48,18 @@ Dep.prototype = {
   addSub: function (sub) {
     this.subs.push(sub)
   },
+  depend: function() {
+    Dep.target.addDep(this);
+  },
   notify: function() {
+    console.log(33)
     this.subs.forEach( s => {
-      sub.update()
+      console.log(331)
+      s.update()
     })
   }
 }
-
-function initData(key,val,vm){
-  let arr = key.split('.')
-  arr.forEach(res => {
-    vm.data[res]
-  })
-}
+Dep.target = null;
 
 function isObject(obj) {
     return Object.prototype.toString.call(obj) === '[object Object]'
@@ -97,11 +99,14 @@ Compile.prototype = {
         // this.compile(node)
         utils.eventHandler(n,this.vm)
       } 
-      else if ((n.nodeType == 3) && reg.test(text)) {
+      else if (n.nodeType == 3) {
         // this.compileText(node, RegExp.$1);
-        this.compileText(node,RegExp.$1.trim())
+
         // utils.inputHandler(node,vm)
-        console.log(RegExp.$1,`{{${RegExp.$1}}}`)
+        
+        if (reg.test(text)) {
+          this.compileText(node,RegExp.$1.trim())
+        }
       }
       // 继续向下递归子节点
       if(n.childNodes && n.childNodes.length) {
@@ -110,8 +115,8 @@ Compile.prototype = {
     })
   },
   compileText: function(node,key) {
-    console.log(this,55)
-
+    // console.log(this,key,55)
+    utils.text(node,key,this.vm)
   },
 
   compile: function(node) {
@@ -119,10 +124,12 @@ Compile.prototype = {
     [].slice.call(attrs).forEach( n => {
       // 注册指令
       let attrName = attr.name
+      // console.log(attrName,311)
       if (attrName.indexOf('v-') == 0) {
         let val = attr.value
 
       }
+      node.removeAttribute(attrName);
     })
   },
 
@@ -130,32 +137,67 @@ Compile.prototype = {
 }
 
 let utils = {
+  text: function (node,key,vm) {
+    let val = this.getVal(vm,key)
+    let text = node.innerText.replace(`{{${key}}}`,val)
+    node.textContent = text
+  },
   eventHandler: function(node,vm) {
     let attr = node.attributes
     for (let i = 0;i < attr.length; i++) {
+      let attrName = attr[i].name
+      let name = attr[i].nodeValue
       if (attr[i].nodeName == 'on-click') {
         let functionName = attr[i].nodeValue;
+        if(!name) {
+          throw 'on-click no value'
+        } 
         node.addEventListener('click', e => vm.methods[functionName].bind(vm)(e));
       }
+
       if(attr[i].nodeName == 'v-model') {
-        let name = attr[i].nodeValue
         if(!name) {
           throw 'v-model no value'
         }  
+
+      if(node.nodeName == 'TEXTAREA' || node.nodeName == 'INPUT') {
+        let newVal = this.getVal(vm,name)
+        node.addEventListener('input',e => { 
+          // console.log(e,e.target.value,name)
+          let val = e.target.value
+          if(newVal == val ) return
+          this.setVal(vm,name,val)
+        })
+      }
         node.removeAttribute('v-model')
       }
-      // if(attr[i].nodeName == 'input') {
-      //   node.addEventListener('input',e => {
-      //     console.log(e.target)
-      //   })
-      // }
-
+      node.removeAttribute(attrName)
     }
   },
-  inputHandler: function(node,vm) {
-    // node.addEventListener('input',e => {
-    //   console.log(e.target)
-    // })
+
+  compile:function (node,vm,exp,dir) {
+    let updaterFn = updater[dir + 'Updater'];
+
+  },
+  getVal: function (vm,name) {
+    let val = vm.data
+    let key = name.split('.')
+    key.forEach( r => {
+      val = val[r]
+    })
+    return val
+  },
+  setVal: function(vm,name,val) {
+    let data = vm.data
+    let key = name.split('.')
+    key.forEach( (v,i) => {
+      if (i < key.length - 1) {
+        data = data[v];
+      } else {
+          data[v] = val;
+      }
+    })
+
   }
 
 }
@@ -163,10 +205,9 @@ let utils = {
 // 解析器Compile end
 //订阅者Watcher start
 function Watcher (vm,reg,cb) {
-this.vm = vm
-this.reg = reg
-this.cb = cb
-this.val = this.get() 
+  this.vm = vm
+  this.reg = reg
+  this.val = this.get() 
 }
 Watcher.prototype = {
   update() {
