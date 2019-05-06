@@ -1,24 +1,22 @@
 //订阅者Watcher start
 function Watcher (vm,reg,cb) {
-  Dep.target = this
-  this.vm = vm.data
+  this.vm = vm
   this.reg = reg
   this.cb = cb
   this.val = this.get() 
-  Dep.target = null
 }
 Watcher.prototype = {
   update() {
     let val = this.get()
     let oldVal = this.val;
     if (val !== oldVal) {
-      this.value = value;
-      this.cb.call(this.node,val,oldVal)
+      this.val = val;
+      this.cb.call(this.vm,val, this.val)
     }
   },
   get() {
     Dep.target = this
-    let val = this.vm[this.reg]
+    let val = this.vm.data[this.reg]
     Dep.target = null
     return val
   }

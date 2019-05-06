@@ -14,12 +14,12 @@ function defineReactive (data,key,val) {
     enumerable: true,
     configurable: false,
     get: function () {
-      console.log(`读取了${key}属性`)
-      dep.target && dep.addSub(dep.target);
+     // console.log(`读取了${key}属性`)
+      Dep.target && dep.addSub(Dep.target);
       return val 
     },
     set: function (newVal) {
-      console.log('set值变化 ', val, ' --> ', newVal,data);
+     // console.log('set值变化 ', val, ' --> ', newVal,data);
       val = newVal
       dep.notify()
     }
@@ -33,18 +33,12 @@ Dep.prototype = {
   addSub: function (sub) {
     this.subs.push(sub)
   },
-  depend: function() {
-    Dep.target.addDep(this);
-  },
   notify: function() {
-    console.log(33)
     this.subs.forEach( sub => {
-      console.log(sub)
       sub.update()
     })
   }
 }
-// Dep.target = null;
 
 function isObject(obj) {
     return Object.prototype.toString.call(obj) === '[object Object]'

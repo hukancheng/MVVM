@@ -9,11 +9,3 @@ function Vue(op) {
   document.getElementById(id).appendChild(dom)
   return this
 }
-
-
-
-
-
-
-
-

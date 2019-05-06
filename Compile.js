@@ -30,9 +30,9 @@ Compile.prototype = {
         // this.compile(node)
         utils.eventHandler(n,this.vm)
       } 
-      else if (n.nodeType == 3) {        
+      else if (n.nodeType == 3) { 
         if (reg.test(text)) {
-          this.compileText(node,RegExp.$1.trim())
+          this.compileText(node,RegExp.$1)
         }
       }
       // 继续向下递归子节点
@@ -42,7 +42,6 @@ Compile.prototype = {
     })
   },
   compileText: function(node,key) {
-    // console.log(this,key,55)
     utils.text(this.vm,node,key)
   },
 
@@ -69,7 +68,7 @@ var utils = {
     updaterFn && updaterFn(node,key, val);
 
     new Watcher(vm, key, function(value, oldValue) {
-        updaterFn && updaterFn(node, value, oldValue);
+      updater.textUpdater1(node,key,oldValue)
     });
   },
 
@@ -101,17 +100,16 @@ var utils = {
             let val = e.target.value
             if(newVal == val ) return
             this.setVal(vm,name,val)
+              new Watcher(vm, name, function(value, oldValue) {
+                // updater.textUpdater1(node,name,oldValue)
+              });
           })
         }
+
         node.removeAttribute('v-model')
       }
       node.removeAttribute(attrName)
     }
-  },
-
-  compile:function (node,vm,exp,dir) {
-    let updaterFn = updater[dir + 'Updater'];
-
   },
 
   getVal: function (vm,name) {
@@ -126,7 +124,7 @@ var utils = {
   setVal: function(vm,name,val) {
     let data = vm.data
     let key = name.split('.')
-    key.forEach( (v,i) => {
+    key.forEach((v,i) => {
       if (i < key.length - 1) {
         data = data[v];
       } else {
@@ -139,8 +137,13 @@ var utils = {
 }
 var updater = {
   textUpdater: function(node,key,val) {
+
     let text = node.innerText.replace(`{{${key}}}`,val)
     node.textContent = text
+  },
+  textUpdater1: function(node,key,val) {
+    // console.log(node,666)
+    node.textContent = val
   }
 }
 
