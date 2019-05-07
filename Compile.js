@@ -27,7 +27,6 @@ Compile.prototype = {
       let reg = /\{\{(.*)\}\}/;
       let text = n.textContent
       if (n.nodeType == 1) {
-        // this.compile(node)
         utils.eventHandler(n,this.vm)
       } 
       else if (n.nodeType == 3) { 
@@ -50,7 +49,6 @@ Compile.prototype = {
     [].slice.call(attrs).forEach( n => {
       // 注册指令
       let attrName = attr.name
-      // console.log(attrName,311)
       if (attrName.indexOf('v-') == 0) {
         let val = attr.value
 
@@ -64,8 +62,8 @@ Compile.prototype = {
 var utils = {
   bind: function (node,vm,key) {
     var updaterFn = updater['textUpdater'];
-    var val = this.getVal(vm, key);
-    updaterFn && updaterFn(node,key, val);
+    let { abValue } = this.getData(key,vm.data)
+    updaterFn && updaterFn(node,key, abValue);
 
     new Watcher(vm, key, function(value, oldValue) {
       updater.textUpdater1(node,key,oldValue)
@@ -95,34 +93,39 @@ var utils = {
         }  
 
         if(node.nodeName == 'TEXTAREA' || node.nodeName == 'INPUT') {
-          let newVal = this.getVal(vm,name)
-          node.addEventListener('input',e => { 
+          let { dataCache, deepName, abValue } = this.getData(name,vm.data)
+          node.addEventListener('input',e => {
             let val = e.target.value
-            if(newVal == val ) return
-            this.setVal(vm,name,val)
-              new Watcher(vm, name, function(value, oldValue) {
-                // updater.textUpdater1(node,name,oldValue)
-              });
+            if(abValue == val ) return
+            this.setVal(dataCache,deepName,val)
           })
         }
+        let { abValue } = this.getData(name, vm.data)
+        node.value = abValue
 
         node.removeAttribute('v-model')
       }
       node.removeAttribute(attrName)
     }
   },
-
-  getVal: function (vm,name) {
-    let val = vm.data
-    let key = name.split('.')
-    key.forEach( r => {
-      val = val[r]
-    })
-    return val
+  getData: function (name, vm) {
+    let nameArray = name.split('.')
+    let l = nameArray.length
+    let dataCache = vm
+    for (let i = 0; i < l - 1; i++) {
+        dataCache = dataCache[nameArray[i]]
+    }
+    let deepName = nameArray[l - 1]
+    let abValue = dataCache[deepName]
+    return {
+        dataCache,
+        deepName,
+        abValue
+    }
   },
 
   setVal: function(vm,name,val) {
-    let data = vm.data
+    let data = vm
     let key = name.split('.')
     key.forEach((v,i) => {
       if (i < key.length - 1) {
@@ -137,7 +140,9 @@ var utils = {
 }
 var updater = {
   textUpdater: function(node,key,val) {
-
+    let reg = /\{\{(.*)\}\}/;
+    reg.test(key)
+    console.log(RegExp)
     let text = node.innerText.replace(`{{${key}}}`,val)
     node.textContent = text
   },

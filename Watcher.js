@@ -1,9 +1,11 @@
 //订阅者Watcher start
 function Watcher (vm,reg,cb) {
+  Dep.target = this
   this.vm = vm
   this.reg = reg
   this.cb = cb
   this.val = this.get() 
+  Dep.target = null
 }
 Watcher.prototype = {
   update() {
@@ -15,10 +17,8 @@ Watcher.prototype = {
     }
   },
   get() {
-    Dep.target = this
-    let val = this.vm.data[this.reg]
-    Dep.target = null
-    return val
+    let { abValue } = utils.getData(this.reg,this.vm.data)
+    return abValue
   }
 }
 
