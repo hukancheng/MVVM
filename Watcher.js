@@ -6,6 +6,7 @@ function Watcher (vm,reg,cb) {
   this.cb = cb
   this.val = this.get() 
   Dep.target = null
+
 }
 Watcher.prototype = {
   update() {

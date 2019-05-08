@@ -19,7 +19,7 @@ function defineReactive (data,key,val) {
       return val 
     },
     set: function (newVal) {
-     // console.log('set值变化 ', val, ' --> ', newVal,data);
+     // console.log('set值变化 ', val, newVal,data);
      if (val === newVal) return
       val = newVal
       dep.notify()
@@ -35,9 +35,8 @@ Dep.prototype = {
     this.subs.push(sub)
   },
   notify: function() {
-    
     this.subs.forEach( sub => {
-      console.log(sub,222)
+      //console.log(sub,222)
       sub.update()
     })
   }

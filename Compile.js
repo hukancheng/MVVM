@@ -84,7 +84,7 @@ var utils = {
         if(!name) {
           throw 'on-click no value'
         } 
-        node.addEventListener('click', e => vm.methods[functionName].bind(vm)(e));
+        node.addEventListener('click', e => vm.methods[functionName].bind(vm.data)(e));
       }
 
       if(attr[i].nodeName == 'v-model') {
@@ -138,11 +138,12 @@ var utils = {
   }
 
 }
+// 下面要深度优化了
 var updater = {
   textUpdater: function(node,key,val) {
     let reg = /\{\{(.*)\}\}/;
-    reg.test(key)
-    console.log(RegExp)
+    
+    console.log(reg.test(key),RegExp.$1)
     let text = node.innerText.replace(`{{${key}}}`,val)
     node.textContent = text
   },
